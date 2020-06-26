@@ -16,7 +16,7 @@ app.use(express.static('./public'))
 const storage = multer.diskStorage({
   destination: imagePath, 
   filename: (req,file, cb) =>{
-    cb(null, file.fieldname + "-" + uuidv4())
+    cb(null, file.fieldname + "-" + Date.now() + uuidv4() + ".jpg")
   }
 })
 
@@ -26,7 +26,7 @@ const displayImages = (images)=>{
   let imageContainer=``
   for (let i=0; i<images.length; i++){
     let url=`http://localhost:${port}/uploads/${images[i]}`
-    imageContainer += `<img style="width: 400px" src="${url}">`
+    imageContainer += `<img style="width: 400px" src="${url}"/>`
   }
   return imageContainer
 }
@@ -53,13 +53,18 @@ app.post("/upload", upload.single("myFile"),(req, res, next)=>{
     error.httpStatusCode = 400
     return next(error)
   }
-  res.send(`
-  <h1>Upload successful</h1>
-  <a href="http://localhost:${port}">Home</a>
-  <br/>
-  <img style="width:500px" alt="pic" scr ="">
-  `)
-})
+  fs.readdir(imagePath, function (err, items){
+    let imageUpload=`<img style="width: 400px" src="/uploads/${items[items.length -1]}"/>`
+    console.log(imageUpload)
+    res.send(
+      `
+      <h1>Upload successful</h1>
+      <a href="http://localhost:${port}">Home</a>
+      <br/>
+      ${imageUpload}
+    `)
+  })
+}) 
 
 app.listen(port, () =>
   console.log(`Example app listening at http://localhost:${port}`)
