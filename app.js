@@ -12,6 +12,9 @@ app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use(express.static('./public'))
 
+app.set('views', './views')
+app.set('view engine', 'pug')
+
 
 const storage = multer.diskStorage({
   destination: imagePath, 
@@ -22,26 +25,10 @@ const storage = multer.diskStorage({
 
 const upload = multer ({storage})
 
-const displayImages = (images)=>{
-  let imageContainer=``
-  for (let i=0; i<images.length; i++){
-    let url=`http://localhost:${port}/uploads/${images[i]}`
-    imageContainer += `<img style="width: 400px" src="${url}"/>`
-  }
-  return imageContainer
-}
 
 app.get("/", (req,res) =>{
   fs.readdir(imagePath, function (err, items){
-    // console.log(items)
-    res.send(`
-        <h1>KenzieGram</h1>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="myFile" />
-            <button type="submit">Upload Image</button>
-        </form>
-        <br/>
-        ${displayImages(items)}`
+    res.render('index',{title:"KenzieGram", images:items}
     )
   })
 })
@@ -54,15 +41,7 @@ app.post("/upload", upload.single("myFile"),(req, res, next)=>{
     return next(error)
   }
   fs.readdir(imagePath, function (err, items){
-    let imageUpload=`<img style="width: 400px" src="/uploads/${items[items.length -1]}"/>`
-    console.log(imageUpload)
-    res.send(
-      `
-      <h1>Upload successful</h1>
-      <a href="http://localhost:${port}">Home</a>
-      <br/>
-      ${imageUpload}
-    `)
+    res.render('uploads', {title:"Uploads Successful", images:items, port:port })
   })
 }) 
 
